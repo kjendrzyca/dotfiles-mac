@@ -1,0 +1,30 @@
+# Ignore everything by default
+*
+
+# Whitelist specific folders and files below
+# Use !folder/ to unignore a folder
+# Use !folder/** to unignore all contents recursively
+
+# Whitelist skhd
+!skhd/
+!skhd/**
+
+# Whitelist yabai
+!yabai/
+!yabai/**
+
+# Whitelist sketchybar
+!sketchybar/
+!sketchybar/**
+
+# Whitelist .gitignore itself
+!.gitignore
+
+# Re-ignore sensitive/temporary files even if in whitelisted folders
+**/.venv/
+**/.DS_Store
+**/debug/
+**/.window_focus_state
+**/.window_order_state.json
+**/bak/
+**/*.backup

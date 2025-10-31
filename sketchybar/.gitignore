@@ -1,0 +1,4 @@
+.DS_Store
+*.log
+plugins/.window_order_state.json
+plugins/.window_focus_state

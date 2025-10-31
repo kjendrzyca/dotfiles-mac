@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+
+# -----------------------------------------------------------------------------
+# Bar Configuration - i3-like styling to match Hammerspoon bar
+# -----------------------------------------------------------------------------
+BAR_COLOR=0xff000000
+BAR_HEIGHT=16
+FONT="Menlo"
+FONT_SIZE=10
+
+sketchybar --bar                       \
+  color=$BAR_COLOR                     \
+  position=top                         \
+  height=$BAR_HEIGHT                   \
+  padding_left=0                       \
+  padding_right=0                      \
+  font="$FONT:Regular:$FONT_SIZE"      \
+  blur_radius=0                        \
+  sticky=on                            \
+  display=1
+
+# -----------------------------------------------------------------------------
+# Window List Items - Individual items for equal space division
+# -----------------------------------------------------------------------------
+# The windows.sh script will dynamically create individual window items
+# with equal width division and teal highlighting for focused windows
+
+sketchybar --add event window_list_update
+sketchybar --add event windows_update
+
+# Subscribe to events that should trigger window list updates
+sketchybar --add item window_manager left \
+           --set window_manager script="$HOME/.config/sketchybar/plugins/windows.sh" \
+                               drawing=off \
+           --subscribe window_manager windows_update window_list_update
+
+# -----------------------------------------------------------------------------
+# Trigger initial window list creation
+# -----------------------------------------------------------------------------
+sketchybar --trigger window_list_update

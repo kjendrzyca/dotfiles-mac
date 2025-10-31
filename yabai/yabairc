@@ -1,0 +1,62 @@
+#!/usr/bin/env sh
+
+# for this to work you must configure sudo such that
+# it will be able to run the command without password
+
+yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+sudo yabai --load-sa
+
+# =============================================================================
+# Minimal Yabai Config - Events Only (No Window Management)
+# =============================================================================
+# This config does ZERO window management to avoid conflicts with Amethyst.
+# It only sets up signals to notify SketchyBar of window/space changes.
+
+# -----------------------------------------------------------------------------
+# Reserve space for SketchyBar (16pt)
+# -----------------------------------------------------------------------------
+# MENU_BAR_HEIGHT=24
+SKETCHYBAR_HEIGHT=16
+TOTAL_TOP_PADDING=$((SKETCHYBAR_HEIGHT))
+
+yabai -m config external_bar all:${TOTAL_TOP_PADDING}:0
+
+# -----------------------------------------------------------------------------
+# SketchyBar Event Signals - This is ALL we need!
+# -----------------------------------------------------------------------------
+
+# Window events
+yabai -m signal --add event=window_created action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+yabai -m signal --add event=window_destroyed action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+yabai -m signal --add event=window_focused action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+yabai -m signal --add event=window_moved action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+yabai -m signal --add event=window_resized action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+yabai -m signal --add event=window_minimized action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+yabai -m signal --add event=window_deminimized action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+
+# Space events
+yabai -m signal --add event=space_changed action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+
+# Display events
+yabai -m signal --add event=display_added action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+yabai -m signal --add event=display_removed action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+yabai -m signal --add event=display_changed action="/opt/homebrew/bin/sketchybar --trigger windows_update"
+
+echo "Yabai configured for SketchyBar events only - no window management active"
+
+# Gaps and padding so borders have breathing room
+yabai -m config window_gap 2
+yabai -m config top_padding 0
+yabai -m config bottom_padding 2
+yabai -m config left_padding 1
+yabai -m config right_padding 1
+
+# Window tiling
+yabai -m config layout stack
+yabai -m config split_type vertical
+
+# Keep specific apps floating / unmanaged as desired
+yabai -m rule --add app="eqMac" manage=off
+
+# Launch window borders with SketchyBar highlight color
+borders  active_color=0xff285577  inactive_color=0xff5f676a  width=2.0  order=above &
