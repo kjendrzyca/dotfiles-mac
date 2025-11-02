@@ -21,6 +21,9 @@
 !aerospace/
 !aerospace/**
 
+# Whitelist kitty
+!kitty/
+!kitty/**
 # Whitelist .gitignore itself
 !.gitignore
 
