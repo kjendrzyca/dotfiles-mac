@@ -17,8 +17,20 @@
 !sketchybar/
 !sketchybar/**
 
+# Whitelist aerospace
+!aerospace/
+!aerospace/**
+
+# Whitelist kitty
+!kitty/
+!kitty/**
+# Whitelist karabiner config
+!karabiner/
+karabiner/*
+!karabiner/karabiner.json
 # Whitelist .gitignore itself
 !.gitignore
+!README.md
 
 # Re-ignore sensitive/temporary files even if in whitelisted folders
 **/.venv/
