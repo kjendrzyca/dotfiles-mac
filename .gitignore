@@ -24,6 +24,10 @@
 # Whitelist kitty
 !kitty/
 !kitty/**
+# Whitelist karabiner config
+!karabiner/
+karabiner/*
+!karabiner/karabiner.json
 # Whitelist .gitignore itself
 !.gitignore
 !README.md

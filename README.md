@@ -5,8 +5,27 @@ This repository captures the parts of the macOS tiling workflow that need to liv
 ## Quick Start
 
 - Install the required apps (see each section).
-- Review the configuration notes and adapt the tracked files (`aerospace/`, `sketchybar/`, `kitty/`) as inspiration for your own setup.
+- Review the configuration notes and adapt the tracked files (`aerospace/`, `sketchybar/`, `kitty/`, `karabiner/karabiner.json`) as inspiration for your own setup.
 - Reload AeroSpace (`aerospace reload`) and SketchyBar (`sketchybar --reload`) whenever you copy changes into place.
+
+---
+
+## Karabiner-Elements
+
+Karabiner-Elements handles the system-level remaps that unlock a Hyper key layer and normalize modifier layouts across keyboards, feeding the keybindings used in the AeroSpace and SketchyBar configs.
+
+### Setup Requires
+
+- `brew install --cask karabiner-elements` ([GitHub](https://github.com/pqrs-org/Karabiner-Elements))
+- Enable Karabiner-Elements in System Settings ▸ Privacy & Security ▸ Input Monitoring and Accessibility
+- Use `karabiner/karabiner.json` as the template for `~/.config/karabiner/karabiner.json`; Karabiner’s automatic backups remain untracked in `karabiner/automatic_backups/`
+
+### Configuration Highlights
+
+- Caps Lock becomes a Hyper layer that emits all four modifiers (`⌘⌃⌥⇧`) at once; AeroSpace leans on this combo for DFS navigation (`cmd-alt-ctrl-shift-'` etc.), and SketchyBar binds the same layer for bar triggers.
+- `Hyper+Left/Right` remap to `⌃PageUp/PageDown`, providing a consistent previous/next tab shortcut across browsers and editors.
+- Device-specific swaps flip the `⌘`/`⌥` positions on ANSI/ISO boards so physical legends line up with macOS defaults, while turning the right Command key into right Option preserves Polish diacritics (e.g. `⌥`+a → ą) on external layouts.
+- Function key overrides map `F5/F6` to keyboard backlight controls to mirror Apple laptops.
 
 ---
 
