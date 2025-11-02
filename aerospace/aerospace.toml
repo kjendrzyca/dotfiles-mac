@@ -1,0 +1,125 @@
+# AeroSpace configuration migrated from yabai/skhd setup.
+# See: https://nikitabobko.github.io/AeroSpace/guide and https://nikitabobko.github.io/AeroSpace/commands
+
+start-at-login = true
+
+# Use AeroSpace callbacks to keep SketchyBar in sync.
+after-startup-command = [
+  'exec-and-forget /bin/bash -lc "/opt/homebrew/bin/sketchybar --trigger aerospace_windows_update"'
+]
+
+# Notify SketchyBar whenever focus shifts (window or workspace).
+on-focus-changed = [
+  'exec-and-forget /bin/bash -lc "/opt/homebrew/bin/sketchybar --trigger aerospace_windows_update"'
+]
+
+# Emit workspace change details for SketchyBar consumption.
+exec-on-workspace-change = [
+  '/bin/bash',
+  '-lc',
+  '/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_update FOCUSED=$AEROSPACE_FOCUSED_WORKSPACE PREV=$AEROSPACE_PREV_WORKSPACE'
+]
+
+# Mouse should stay put; remove auto-centering to mimic prior behavior.
+on-focused-monitor-changed = []
+
+# No padding for the accordion layout for the full width experience.
+accordion-padding = 0
+
+# Match previous padding: 2px gaps, 16px top bar, subtle side margins.
+[gaps]
+inner.horizontal = 2
+inner.vertical = 2
+outer.top = 16
+outer.bottom = 2
+outer.left = 1
+outer.right = 1
+
+[exec]
+inherit-env-vars = true
+
+[exec.env-vars]
+PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
+
+# Primary binding mode.
+[mode.main.binding]
+# Directional focus akin to vim-style hjkl.
+# alt-h = 'focus left'
+# alt-j = 'focus down'
+# alt-k = 'focus up'
+# alt-l = 'focus right'
+
+# Cycle windows depth-first (matches previous next/prev).
+cmd-alt-ctrl-shift-quote = [
+    'focus dfs-next',
+    'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
+]
+cmd-alt-ctrl-shift-semicolon = [
+    'focus dfs-prev',
+    'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
+]
+alt-tab = 'focus dfs-next'
+alt-backtick = 'focus dfs-prev'
+
+# Focus highlighted window (dfs index) with cmd+number.
+# cmd-1 = 'focus --dfs-index 0'
+# cmd-2 = 'focus --dfs-index 1'
+# cmd-3 = 'focus --dfs-index 2'
+# cmd-4 = 'focus --dfs-index 3'
+# cmd-5 = 'focus --dfs-index 4'
+# cmd-6 = 'focus --dfs-index 5'
+# cmd-7 = 'focus --dfs-index 6'
+# cmd-8 = 'focus --dfs-index 7'
+# cmd-9 = 'focus --dfs-index 8'
+# cmd-0 = 'focus --dfs-index 9'
+
+# Swap windows in depth-first order (reorder shortcuts).
+alt-shift-semicolon = [
+    'swap dfs-prev',
+    'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
+]
+alt-shift-quote = [
+    'swap dfs-next',
+    'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
+]
+
+# Launchers preserved from skhd.
+cmd-alt-ctrl-shift-enter = '''exec-and-forget open -na "Kitty" --args --single-instance -d ~'''
+cmd-alt-ctrl-shift-f = 'exec-and-forget open ~'
+
+# Workspace navigation (Option key as before).
+alt-1 = 'workspace 1'
+alt-2 = 'workspace 2'
+alt-3 = 'workspace 3'
+alt-4 = 'workspace 4'
+alt-5 = 'workspace 5'
+alt-6 = 'workspace 6'
+alt-7 = 'workspace 7'
+alt-8 = 'workspace 8'
+alt-9 = 'workspace 9'
+alt-0 = 'workspace 10'
+
+# Move focused window to workspace and follow it.
+alt-shift-1 = ['move-node-to-workspace 1', 'workspace 1']
+alt-shift-2 = ['move-node-to-workspace 2', 'workspace 2']
+alt-shift-3 = ['move-node-to-workspace 3', 'workspace 3']
+alt-shift-4 = ['move-node-to-workspace 4', 'workspace 4']
+alt-shift-5 = ['move-node-to-workspace 5', 'workspace 5']
+alt-shift-6 = ['move-node-to-workspace 6', 'workspace 6']
+alt-shift-7 = ['move-node-to-workspace 7', 'workspace 7']
+alt-shift-8 = ['move-node-to-workspace 8', 'workspace 8']
+alt-shift-9 = ['move-node-to-workspace 9', 'workspace 9']
+alt-shift-0 = ['move-node-to-workspace 10', 'workspace 10']
+
+# Layout toggles similar to previous workflow.
+alt-shift-e = 'layout tiles horizontal vertical'
+alt-shift-w = 'layout accordion horizontal vertical'
+
+# Dedicated mode for service operations (reset layout, toggle float, etc.).
+alt-shift-s = 'mode service'
+
+[mode.service.binding]
+esc = ['mode main']
+r = ['flatten-workspace-tree', 'mode main']
+f = ['layout floating tiling', 'mode main']
+backspace = ['close-all-windows-but-current', 'mode main']

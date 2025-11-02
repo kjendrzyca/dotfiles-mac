@@ -1,9 +1,0 @@
-# Python virtual environment
-.venv/
-
-# Bytecode
-__pycache__/
-*.pyc
-
-# Logs or temp files
-*.log

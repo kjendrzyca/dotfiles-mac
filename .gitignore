@@ -17,6 +17,10 @@
 !sketchybar/
 !sketchybar/**
 
+# Whitelist aerospace
+!aerospace/
+!aerospace/**
+
 # Whitelist .gitignore itself
 !.gitignore
 
