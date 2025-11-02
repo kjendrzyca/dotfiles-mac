@@ -26,6 +26,7 @@
 !kitty/**
 # Whitelist .gitignore itself
 !.gitignore
+!README.md
 
 # Re-ignore sensitive/temporary files even if in whitelisted folders
 **/.venv/
