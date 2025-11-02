@@ -29,6 +29,9 @@ on-focused-monitor-changed = []
 # No padding for the accordion layout for the full width experience.
 accordion-padding = 0
 
+# Possible values: tiles|accordion
+default-root-container-layout = 'accordion'
+
 # Match previous padding: 2px gaps, 16px top bar, subtle side margins.
 [gaps]
 inner.horizontal = 2
