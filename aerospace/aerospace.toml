@@ -54,15 +54,15 @@ PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 
 # Cycle windows depth-first (matches previous next/prev).
 cmd-alt-ctrl-shift-quote = [
-    'focus dfs-next',
+    'focus --boundaries-action wrap-around-the-workspace dfs-next',
     'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
 ]
 cmd-alt-ctrl-shift-semicolon = [
-    'focus dfs-prev',
+    'focus --boundaries-action wrap-around-the-workspace dfs-prev',
     'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
 ]
-alt-tab = 'focus dfs-next'
-alt-backtick = 'focus dfs-prev'
+alt-tab = 'focus --boundaries-action wrap-around-the-workspace dfs-next'
+alt-backtick = 'focus --boundaries-action wrap-around-the-workspace dfs-prev'
 
 # Focus highlighted window (dfs index) with cmd+number.
 # cmd-1 = 'focus --dfs-index 0'
