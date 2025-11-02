@@ -53,10 +53,12 @@ if.app-id = 'com.workflowy.desktop'
 run = 'move-node-to-workspace 2'
 
 [[on-window-detected]]
+# com.brave.Browser.app.ljdfgmldekfikdbkinhbfedocgknaall -> NoThinkDo
 if.app-id = 'com.brave.Browser.app.ljdfgmldekfikdbkinhbfedocgknaall'
 run = 'move-node-to-workspace 3'
 
 [[on-window-detected]]
+# com.brave.Browser.app.kjbdgfilnfhdoflbpgamdcdgpehopbep -> Google Calendar
 if.app-id = 'com.brave.Browser.app.kjbdgfilnfhdoflbpgamdcdgpehopbep'
 run = 'move-node-to-workspace 3'
 
