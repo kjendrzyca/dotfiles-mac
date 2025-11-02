@@ -111,7 +111,3 @@ Kitty provides a GPU-accelerated terminal that fits neatly inside the tiling lay
 ### Configuration Highlights
 
 - `kitty.conf` pulls in `OneDark.conf`, aligns padding with AeroSpace gaps, and keeps font sizing consistent with the SketchyBar labels.
-
----
-
-Keep this README aligned with the tracked configs so anyone can recreate the window manager, menu bar, and terminal in one pass.
