@@ -44,6 +44,38 @@ inherit-env-vars = true
 [exec.env-vars]
 PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 
+[[on-window-detected]]
+if.app-id = 'com.electron.logseq'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'com.workflowy.desktop'
+run = 'move-node-to-workspace 2'
+
+[[on-window-detected]]
+if.app-id = 'com.brave.Browser.app.ljdfgmldekfikdbkinhbfedocgknaall'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.brave.Browser.app.kjbdgfilnfhdoflbpgamdcdgpehopbep'
+run = 'move-node-to-workspace 3'
+
+[[on-window-detected]]
+if.app-id = 'com.spotify.client'
+run = 'move-node-to-workspace 9'
+
+[[on-window-detected]]
+if.app-id = 'com.electron.brain.fm'
+run = 'move-node-to-workspace 9'
+
+[[on-window-detected]]
+if.app-id = 'com.hnc.Discord'
+run = 'move-node-to-workspace 10'
+
+[[on-window-detected]]
+if.app-id = 'org.whispersystems.signal-desktop'
+run = 'move-node-to-workspace 10'
+
 # Primary binding mode.
 [mode.main.binding]
 # Directional focus akin to vim-style hjkl.
