@@ -61,6 +61,15 @@ if.app-id = 'com.brave.Browser.app.kjbdgfilnfhdoflbpgamdcdgpehopbep'
 run = 'move-node-to-workspace 3'
 
 [[on-window-detected]]
+if.app-id = 'com.brave.Browser'
+if.window-title-regex-substring = 'Praca'
+run = 'move-node-to-workspace 5'
+
+[[on-window-detected]]
+if.app-id = 'net.shinyfrog.bear'
+run = 'move-node-to-workspace 5'
+
+[[on-window-detected]]
 if.app-id = 'com.spotify.client'
 run = 'move-node-to-workspace 9'
 
