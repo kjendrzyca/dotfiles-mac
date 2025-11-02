@@ -5,6 +5,9 @@ start-at-login = true
 
 # Use AeroSpace callbacks to keep SketchyBar in sync.
 after-startup-command = [
+  # JankyBorders has a built-in detection of already running process,
+  # so it won't be run twice on AeroSpace restart
+  'exec-and-forget borders active_color=0xff285577 inactive_color=0xff5f676a width=2.0 order=above',
   'exec-and-forget /bin/bash -lc "/opt/homebrew/bin/sketchybar --trigger aerospace_windows_update"'
 ]
 
