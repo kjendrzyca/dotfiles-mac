@@ -19,16 +19,26 @@ WHITE_COLOR=0xffffffff
 BORDER_COLOR_ACTIVE=0xff4c7899
 BORDER_COLOR_INACTIVE=0xff5f676a
 
-# Fetch current workspace windows
+# Fetch current workspace windows (ordered by AeroSpace)
 windows_json="$("$AEROSPACE_BIN" list-windows --workspace focused --json 2>/dev/null || printf '[]')"
-
 window_count=$(printf '%s' "$windows_json" | "$JQ_BIN" 'length' 2>/dev/null || printf '0')
+
+# Collect existing SketchyBar items (left to right order)
+existing_window_items=()
+while IFS= read -r item; do
+  [[ -n "$item" ]] && existing_window_items+=("$item")
+done < <(
+  "$SKETCHYBAR_BIN" --query bar 2>/dev/null \
+    | "$JQ_BIN" -r '.items[]? // empty' 2>/dev/null \
+    | grep "^${ITEM_PREFIX}" || true
+)
+
+# If there are no AeroSpace windows, remove lingering bar items
 if ! [[ "$window_count" =~ ^[0-9]+$ ]] || [[ "$window_count" -eq 0 ]]; then
-  existing_items=$("$SKETCHYBAR_BIN" --query bar 2>/dev/null | "$JQ_BIN" -r '.items[]? // empty' 2>/dev/null | grep '^window_[0-9]\+$' || true)
-  if [[ -n "${existing_items:-}" ]]; then
-    while IFS= read -r item; do
-      [[ -n "$item" ]] && "$SKETCHYBAR_BIN" --remove "$item"
-    done <<<"$existing_items"
+  if [[ ${#existing_window_items[@]} -gt 0 ]]; then
+    for item in "${existing_window_items[@]}"; do
+      "$SKETCHYBAR_BIN" --remove "$item"
+    done
   fi
   exit 0
 fi
@@ -63,17 +73,22 @@ fi
 
 focused_id="$("$AEROSPACE_BIN" list-windows --focused --format '%{window-id}' 2>/dev/null | tr -d '\n')"
 
-existing_items=$("$SKETCHYBAR_BIN" --query bar 2>/dev/null | "$JQ_BIN" -r '.items[]? // empty' 2>/dev/null | grep '^window_[0-9]\+$' || true)
-if [[ -n "${existing_items:-}" ]]; then
-  while IFS= read -r item; do
-    [[ -n "$item" ]] && "$SKETCHYBAR_BIN" --remove "$item"
-  done <<<"$existing_items"
-fi
+# Track desired item names for removal + reorder
+desired_order=()
 
 sequence=1
-printf '%s' "$windows_json" | "$JQ_BIN" -c '.[]' | while IFS= read -r window; do
+while IFS= read -r window; do
+  [[ -z "$window" ]] && continue
+
   window_id=$(printf '%s' "$window" | "$JQ_BIN" -r '.["window-id"] // empty' | tr -d '\n')
   [[ -z "$window_id" ]] && continue
+  item_name="${ITEM_PREFIX}${window_id}"
+
+  desired_order+=("$item_name")
+
+  if ! "$SKETCHYBAR_BIN" --query "$item_name" >/dev/null 2>&1; then
+    "$SKETCHYBAR_BIN" --add item "$item_name" left
+  fi
 
   app_name=$(printf '%s' "$window" | "$JQ_BIN" -r '.["app-name"] // ""' | tr -d '\n')
   window_title=$(printf '%s' "$window" | "$JQ_BIN" -r '.["window-title"] // ""' | tr -d '\n')
@@ -91,10 +106,8 @@ printf '%s' "$windows_json" | "$JQ_BIN" -c '.[]' | while IFS= read -r window; do
     border_color=$BORDER_COLOR_ACTIVE
   fi
 
-  item_name="${ITEM_PREFIX}${sequence}"
   click_cmd="$AEROSPACE_BIN focus --window-id ${window_id}"
 
-  "$SKETCHYBAR_BIN" --add item "$item_name" left
   "$SKETCHYBAR_BIN" --set "$item_name" \
     "label=$label" \
     "label.color=$WHITE_COLOR" \
@@ -114,6 +127,18 @@ printf '%s' "$windows_json" | "$JQ_BIN" -c '.[]' | while IFS= read -r window; do
     "click_script=$click_cmd"
 
   ((sequence+=1))
+done < <(printf '%s' "$windows_json" | "$JQ_BIN" -c '.[]')
+
+# Remove window items no longer present
+for item in "${existing_window_items[@]}"; do
+  if ! printf '%s\n' "${desired_order[@]}" | grep -Fx "$item" >/dev/null 2>&1; then
+    "$SKETCHYBAR_BIN" --remove "$item"
+  fi
 done
+
+# Ensure SketchyBar order matches AeroSpace order
+if [[ ${#desired_order[@]} -gt 0 ]]; then
+  "$SKETCHYBAR_BIN" --reorder "${desired_order[@]}"
+fi
 
 exit 0
