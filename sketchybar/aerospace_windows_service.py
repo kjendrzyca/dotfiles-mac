@@ -32,7 +32,7 @@ AEROSPACE_BIN = os.environ.get(
 JQ_BIN = os.environ.get("JQ_BIN", "/opt/homebrew/bin/jq")
 MONITOR_WIDTH_BIN = CONFIG_DIR / "bin" / "monitor-width"
 
-SCROLL_TEXTS = os.environ.get("SKETCHYBAR_SCROLL_TEXTS", "on")
+SCROLL_TEXTS = os.environ.get("SKETCHYBAR_SCROLL_TEXTS", "off")
 INSTANT_REDRAW = os.environ.get("SKETCHYBAR_INSTANT_REDRAW", "0").lower() in {"1", "true", "on", "yes"}
 
 DEFAULT_ITEM_WIDTH = 160
