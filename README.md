@@ -79,11 +79,11 @@ SketchyBar renders a scriptable menu bar. Paired with AeroSpace it provides a cl
 
 ### Configuration Highlights
 
-- `sketchybarrc` registers `aerospace_windows_update` and `aerospace_workspace_update`, and a hidden `aerospace_listener` item runs the renderer on startup and whenever AeroSpace rotates focus or workspaces.
-- `aerospace_windows.sh` persists `window_<window-id>` items, pulls `aerospace list-windows --workspace focused --json`, resizes each item to consume its portion of the monitor width, and sets the click action to `aerospace focus --window-id …`.
-- After every refresh the script issues `sketchybar --reorder` to keep the menu bar aligned with AeroSpace’s DFS order, so swaps never flash or recreate items.
-- Colors, fonts, and padding are tuned for a 16 px tall bar, matching the reserved top gap in AeroSpace.
-- Force a redraw any time with `sketchybar --trigger aerospace_windows_update` or `sketchybar --reload`.
+- `sketchybarrc` registers `aerospace_windows_update` / `aerospace_workspace_update`, spins up a long-lived Python service (`aerospace_windows_service.py`) on launch, and points the hidden listener at a lightweight trigger script (`aerospace_windows_trigger.sh`).
+- The service maintains window state in memory: it diffs AeroSpace JSON output, updates only the items whose properties changed, batches reorders, and keeps redraw latency near-instant. If the service is unreachable the trigger exits non-zero, making issues obvious during testing.
+- `aerospace_windows.sh` remains in the repo as a fallback reference but is no longer called by default.
+- Colors, fonts, and padding stay tuned for a 16 px bar so the visuals still align with AeroSpace.
+- Force a redraw any time with `sketchybar --trigger aerospace_windows_update` or `sketchybar --reload`; the new service listens for both.
 
 ### Monitor Width Helper
 

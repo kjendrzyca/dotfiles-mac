@@ -8,6 +8,14 @@ BAR_HEIGHT=16
 FONT="Menlo"
 FONT_SIZE=10
 
+# Ensure the AeroSpace window rendering daemon is running
+SERVICE="$HOME/.config/sketchybar/aerospace_windows_service.py"
+if command -v python3 >/dev/null 2>&1; then
+  if ! pgrep -f "aerospace_windows_service.py" >/dev/null 2>&1; then
+    "$SERVICE" >/tmp/sketchybar_aerospace_service.log 2>&1 &
+  fi
+fi
+
 sketchybar --bar                       \
   color=$BAR_COLOR                     \
   position=top                         \
@@ -25,7 +33,7 @@ sketchybar --add event aerospace_workspace_update
 
 # Hidden listener runs the AeroSpace window renderer for each event.
 sketchybar --add item aerospace_listener left \
-           --set aerospace_listener script="$HOME/.config/sketchybar/aerospace_windows.sh" \
+           --set aerospace_listener script="$HOME/.config/sketchybar/aerospace_windows_trigger.sh" \
                                      drawing=off \
            --subscribe aerospace_listener aerospace_windows_update aerospace_workspace_update forced
 
