@@ -3,3 +3,4 @@
 plugins/.window_order_state.json
 plugins/.window_focus_state
 bin/monitor-width
+.cache/
