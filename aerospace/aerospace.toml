@@ -8,12 +8,14 @@ after-startup-command = [
   # JankyBorders has a built-in detection of already running process,
   # so it won't be run twice on AeroSpace restart
   'exec-and-forget borders active_color=0xff285577 inactive_color=0xff5f676a width=2.0 order=above blacklist="Loom"',
-  'exec-and-forget /bin/bash -lc "/opt/homebrew/bin/sketchybar --trigger aerospace_windows_update"'
+  # Warm up SketchyBar binary (query only) to reduce first-trigger latency.
+  'exec-and-forget /opt/homebrew/bin/sketchybar --query bar',
+  'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
 ]
 
 # Notify SketchyBar whenever focus shifts (window or workspace).
 on-focus-changed = [
-  'exec-and-forget /bin/bash -lc "/opt/homebrew/bin/sketchybar --trigger aerospace_windows_update"'
+  'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
 ]
 
 # Emit workspace change details for SketchyBar consumption.
