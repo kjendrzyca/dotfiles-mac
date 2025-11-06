@@ -34,6 +34,9 @@ accordion-padding = 0
 # Possible values: tiles|accordion
 default-root-container-layout = 'accordion'
 
+[workspace-to-monitor-force-assignment]
+11 = 'secondary'
+
 # Match previous padding: 2px gaps, 16px top bar, subtle side margins.
 [gaps]
 inner.horizontal = 2
@@ -93,6 +96,32 @@ if.app-id = 'org.whispersystems.signal-desktop'
 run = 'move-node-to-workspace 10'
 
 # Primary binding mode.
+# All possible keys:
+    # - Letters.        a, b, c, ..., z
+    # - Numbers.        0, 1, 2, ..., 9
+    # - Keypad numbers. keypad0, keypad1, keypad2, ..., keypad9
+    # - F-keys.         f1, f2, ..., f20
+    # - Special keys.   minus, equal, period, comma, slash, backslash, quote, semicolon,
+    #                   backtick, leftSquareBracket, rightSquareBracket, space, enter, esc,
+    #                   backspace, tab, pageUp, pageDown, home, end, forwardDelete,
+    #                   sectionSign (ISO keyboards only, european keyboards only)
+    # - Keypad special. keypadClear, keypadDecimalMark, keypadDivide, keypadEnter, keypadEqual,
+    #                   keypadMinus, keypadMultiply, keypadPlus
+    # - Arrows.         left, down, up, right
+
+    # All possible modifiers: cmd, alt, ctrl, shift
+
+    # All possible commands: https://nikitabobko.github.io/AeroSpace/commands
+
+    # See: https://nikitabobko.github.io/AeroSpace/commands#exec-and-forget
+    # You can uncomment the following lines to open up terminal with alt + enter shortcut
+    # (like in i3)
+    # alt-enter = '''exec-and-forget osascript -e '
+    # tell application "Terminal"
+    #     do script
+    #     activate
+    # end tell'
+    # '''
 [mode.main.binding]
 # Directional focus akin to vim-style hjkl.
 # alt-h = 'focus left'
@@ -149,6 +178,7 @@ alt-7 = 'workspace 7'
 alt-8 = 'workspace 8'
 alt-9 = 'workspace 9'
 alt-0 = 'workspace 10'
+alt-backslash = 'workspace 11'
 
 # Move focused window to workspace (stay on current workspace).
 alt-shift-1 = ['move-node-to-workspace 1']
@@ -161,6 +191,7 @@ alt-shift-7 = ['move-node-to-workspace 7']
 alt-shift-8 = ['move-node-to-workspace 8']
 alt-shift-9 = ['move-node-to-workspace 9']
 alt-shift-0 = ['move-node-to-workspace 10']
+alt-shift-backslash = ['move-node-to-workspace 11']
 
 # Layout toggles similar to previous workflow.
 alt-shift-e = 'layout tiles horizontal vertical'
