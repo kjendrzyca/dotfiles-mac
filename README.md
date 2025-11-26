@@ -85,6 +85,17 @@ SketchyBar renders a scriptable menu bar. Paired with AeroSpace it provides a cl
 - Colors, fonts, and padding stay tuned for a 16 px bar so the visuals still align with AeroSpace.
 - Force a redraw any time with `sketchybar --trigger aerospace_windows_update` or `sketchybar --reload`; the new service listens for both.
 
+### Restarting the AeroSpace Window Service
+
+Switching AeroSpace binaries (for example, after rebuilding `~/github/AeroSpace/.debug`) requires restarting the Python renderer so it picks up the new CLI path:
+
+1. Export the debug CLI for all login shells: `launchctl setenv AEROSPACE_BIN ~/github/AeroSpace/.debug/aerospace` (rerun this whenever the path changes). Verify with `launchctl getenv AEROSPACE_BIN` if needed.
+2. Stop any stale renderer so the reload starts a fresh copy: `pkill -f aerospace_windows_service.py` (safe even if it is not running).
+3. Reload SketchyBar to relaunch the daemon under the updated environment: `sketchybar --reload`.
+4. Populate the bar immediately by triggering an update: `sketchybar --trigger aerospace_windows_update`.
+
+`sketchybarrc` performs the same steps automatically on login, so running the commands above manually is only necessary after changing binaries or debugging the service.
+
 ### Monitor Width Helper
 
 Compile the Swift helper once to restore proportional item widths:
