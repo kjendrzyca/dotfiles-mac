@@ -13,11 +13,12 @@ ITEM_PREFIX="window_"
 DEFAULT_ITEM_WIDTH=160
 LABEL_PADDING=10 # 5 left + 5 right
 
-TEAL_COLOR=0xff285577
+TEAL_COLOR=0xff4c9df3
 DARK_GRAY=0xff333333
 WHITE_COLOR=0xffffffff
-BORDER_COLOR_ACTIVE=0xff4c7899
-BORDER_COLOR_INACTIVE=0xff5f676a
+BLACK_COLOR=0xff000000
+BORDER_COLOR_ACTIVE=0xff4c9df3
+BORDER_COLOR_INACTIVE=0xff4c9df3
 
 # Fetch current workspace windows (ordered by AeroSpace)
 windows_json="$("$AEROSPACE_BIN" list-windows --workspace focused --json 2>/dev/null || printf '[]')"
@@ -101,16 +102,18 @@ while IFS= read -r window; do
 
   bg_color=$DARK_GRAY
   border_color=$BORDER_COLOR_INACTIVE
+  label_color=$WHITE_COLOR
   if [[ -n "$focused_id" && "$window_id" == "$focused_id" ]]; then
     bg_color=$TEAL_COLOR
     border_color=$BORDER_COLOR_ACTIVE
+    label_color=$BLACK_COLOR
   fi
 
   click_cmd="$AEROSPACE_BIN focus --window-id ${window_id}"
 
   "$SKETCHYBAR_BIN" --set "$item_name" \
     "label=$label" \
-    "label.color=$WHITE_COLOR" \
+    "label.color=$label_color" \
     "label.font=Menlo:Regular:10.0" \
     "label.padding_left=5" \
     "label.padding_right=5" \
