@@ -40,11 +40,12 @@ LABEL_PADDING = 10
 BAR_HEIGHT = 16
 ITEM_PREFIX = "window_"
 
-TEAL_COLOR = "0xff285577"
+TEAL_COLOR = "0xff4c9df3"
 DARK_GRAY = "0xff333333"
 WHITE_COLOR = "0xffffffff"
-BORDER_COLOR_ACTIVE = "0xff4c7899"
-BORDER_COLOR_INACTIVE = "0xff5f676a"
+BLACK_COLOR = "0xff000000"
+BORDER_COLOR_ACTIVE = "0xff4c9df3"
+BORDER_COLOR_INACTIVE = "0xff4c9df3"
 
 
 class AeroSpaceError(RuntimeError):
@@ -203,13 +204,15 @@ class Renderer:
 
             bg_color = DARK_GRAY
             border_color = BORDER_COLOR_INACTIVE
+            label_color = WHITE_COLOR
             if focus_id and window_id == focus_id:
                 bg_color = TEAL_COLOR
                 border_color = BORDER_COLOR_ACTIVE
+                label_color = BLACK_COLOR
 
             props = {
                 "label": window_label(idx, app_name, window_title),
-                "label.color": WHITE_COLOR,
+                "label.color": label_color,
                 "label.font": "Menlo:Regular:10.0",
                 "label.padding_left": "5",
                 "label.padding_right": "5",
