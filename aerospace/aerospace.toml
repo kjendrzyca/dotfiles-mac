@@ -53,6 +53,14 @@ inherit-env-vars = true
 PATH = '/opt/homebrew/bin:/opt/homebrew/sbin:${PATH}'
 
 [[on-window-detected]]
+if.app-id = 'net.whatsapp.WhatsApp'
+run = 'move-node-to-workspace 10'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Terminal'
+run = 'move-node-to-workspace 8'
+
+[[on-window-detected]]
 if.app-id = 'com.electron.logseq'
 run = 'move-node-to-workspace 2'
 
@@ -97,6 +105,10 @@ run = 'move-node-to-workspace 10'
 
 [[on-window-detected]]
 if.app-id = 'com.bitgapp.eqmac'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'io.krzysztof.scratchpad'
 run = 'layout floating'
 
 # Primary binding mode.
