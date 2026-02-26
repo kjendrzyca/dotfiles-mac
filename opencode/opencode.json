@@ -1,0 +1,34 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "anthropic/claude-opus-4-6",
+  "plugin": ["opencode-gemini-auth@latest"],
+  "agent": {
+    "build": {
+      "model": "anthropic/claude-opus-4-6"
+    },
+    "plan": {
+      "model": "anthropic/claude-opus-4-6"
+    }
+  },
+  "mcp": {
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "-y", "chrome-devtools-mcp@latest"]
+    }
+  },
+  "permission": {
+    "bash": {
+      "gh *": "ask",
+      "git add *": "allow",
+      "git commit *": "allow",
+      "git push *": "ask",
+      "git pull *": "ask",
+      "rm *": "ask",
+      "npx *": "ask",
+      "npm exec *": "ask",
+      "pnpm dlx *": "ask",
+      "bunx *": "ask",
+      "yarn dlx *": "ask"
+    }
+  }
+}
