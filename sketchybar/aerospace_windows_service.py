@@ -17,7 +17,7 @@ import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Set
 
 
 CONFIG_DIR = Path(os.environ.get("SKETCHYBAR_CONFIG_DIR", Path.home() / ".config" / "sketchybar"))
@@ -39,6 +39,10 @@ DEFAULT_ITEM_WIDTH = 160
 LABEL_PADDING = 10
 BAR_HEIGHT = 16
 ITEM_PREFIX = "window_"
+
+IGNORED_APP_BUNDLE_IDS: Set[str] = {
+    "io.krzysztof.scratchpad",
+}
 
 TEAL_COLOR = "0xff4c9df3"
 DARK_GRAY = "0xff333333"
@@ -121,6 +125,11 @@ def fetch_focused_window_id() -> str:
     return result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
 
 
+def should_ignore_window(window: Dict) -> bool:
+    bundle_id = str(window.get("app-bundle-id") or window.get("app-id") or "").strip()
+    return bool(bundle_id and bundle_id in IGNORED_APP_BUNDLE_IDS)
+
+
 def window_label(seq: int, app_name: str, title: str) -> str:
     safe_title = title.replace("\n", " ").strip()
     label = f"[{seq}] {app_name}"
@@ -174,13 +183,15 @@ class Renderer:
             log(str(err))
             return
 
-        if not windows:
+        visible_windows = [w for w in windows if not should_ignore_window(w)]
+
+        if not visible_windows:
             self._clear_bar()
             return
 
         focus_id = fetch_focused_window_id()
         monitor_info = fetch_monitor_info()
-        window_count = len(windows)
+        window_count = len(visible_windows)
         item_width = DEFAULT_ITEM_WIDTH
         monitor_width = monitor_info.get("width", 0) if monitor_info else 0
         if isinstance(monitor_width, int) and monitor_width > 0 and window_count > 0:
@@ -192,7 +203,7 @@ class Renderer:
         new_order: List[str] = []
         new_props: Dict[str, Dict[str, str]] = {}
 
-        for idx, window in enumerate(windows, start=1):
+        for idx, window in enumerate(visible_windows, start=1):
             window_id = str(window.get("window-id", "")).strip()
             if not window_id:
                 continue
