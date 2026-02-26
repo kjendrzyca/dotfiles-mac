@@ -28,6 +28,11 @@
 !karabiner/
 karabiner/*
 !karabiner/karabiner.json
+# Whitelist opencode config
+!opencode/
+opencode/*
+!opencode/opencode.json
+
 # Whitelist .gitignore itself
 !.gitignore
 !README.md
