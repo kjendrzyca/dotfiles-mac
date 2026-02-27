@@ -7,7 +7,7 @@ start-at-login = true
 after-startup-command = [
   # JankyBorders has a built-in detection of already running process,
   # so it won't be run twice on AeroSpace restart
-  'exec-and-forget borders active_color=0xff4c9df3 inactive_color=0xff5f676a width=2.0 order=above blacklist="Loom"',
+  'exec-and-forget borders active_color=0xff4c9df3 inactive_color=0xff5f676a width=2.0 order=above blacklist="Loom,Wispr Flow"',
   # Warm up SketchyBar binary (query only) to reduce first-trigger latency.
   'exec-and-forget /opt/homebrew/bin/sketchybar --query bar',
   'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
@@ -105,6 +105,14 @@ run = 'move-node-to-workspace 10'
 
 [[on-window-detected]]
 if.app-id = 'com.bitgapp.eqmac'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.electron.wispr-flow'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.electron.wispr-flow.accessibility-mac-app'
 run = 'layout floating'
 
 [[on-window-detected]]

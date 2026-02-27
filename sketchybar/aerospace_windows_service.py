@@ -20,20 +20,28 @@ from pathlib import Path
 from typing import Dict, List, Set
 
 
-CONFIG_DIR = Path(os.environ.get("SKETCHYBAR_CONFIG_DIR", Path.home() / ".config" / "sketchybar"))
+CONFIG_DIR = Path(
+    os.environ.get("SKETCHYBAR_CONFIG_DIR", Path.home() / ".config" / "sketchybar")
+)
 CACHE_DIR = CONFIG_DIR / ".cache"
 SOCKET_PATH = CACHE_DIR / "aerospace_windows.sock"
 
 SKETCHYBAR_BIN = os.environ.get("SKETCHYBAR_BIN", "/opt/homebrew/bin/sketchybar")
 AEROSPACE_BIN = os.environ.get(
     "AEROSPACE_BIN",
-    os.popen("launchctl getenv AEROSPACE_BIN").read().strip() or "/opt/homebrew/bin/aerospace",
+    os.popen("launchctl getenv AEROSPACE_BIN").read().strip()
+    or "/opt/homebrew/bin/aerospace",
 )
 JQ_BIN = os.environ.get("JQ_BIN", "/opt/homebrew/bin/jq")
 MONITOR_WIDTH_BIN = CONFIG_DIR / "bin" / "monitor-width"
 
 SCROLL_TEXTS = os.environ.get("SKETCHYBAR_SCROLL_TEXTS", "off")
-INSTANT_REDRAW = os.environ.get("SKETCHYBAR_INSTANT_REDRAW", "0").lower() in {"1", "true", "on", "yes"}
+INSTANT_REDRAW = os.environ.get("SKETCHYBAR_INSTANT_REDRAW", "0").lower() in {
+    "1",
+    "true",
+    "on",
+    "yes",
+}
 
 DEFAULT_ITEM_WIDTH = 160
 LABEL_PADDING = 10
@@ -42,6 +50,12 @@ ITEM_PREFIX = "window_"
 
 IGNORED_APP_BUNDLE_IDS: Set[str] = {
     "io.krzysztof.scratchpad",
+    "com.electron.wispr-flow",
+    "com.electron.wispr-flow.accessibility-mac-app",
+}
+
+IGNORED_APP_NAMES: Set[str] = {
+    "Wispr Flow",
 }
 
 TEAL_COLOR = "0xff4c9df3"
@@ -72,7 +86,9 @@ def run_command(args: List[str], capture: bool = True) -> subprocess.CompletedPr
 
 
 def fetch_windows_json() -> List[Dict]:
-    result = run_command([AEROSPACE_BIN, "list-windows", "--workspace", "focused", "--json"])
+    result = run_command(
+        [AEROSPACE_BIN, "list-windows", "--workspace", "focused", "--json"]
+    )
     if result.returncode != 0:
         raise AeroSpaceError(result.stderr.strip() or "list-windows failed")
     try:
@@ -89,13 +105,29 @@ def fetch_monitor_info() -> Dict[str, str]:
     monitor_width = 0
 
     result = run_command(
-        [AEROSPACE_BIN, "list-windows", "--workspace", "focused", "--format", "%{monitor-name}"]
+        [
+            AEROSPACE_BIN,
+            "list-windows",
+            "--workspace",
+            "focused",
+            "--format",
+            "%{monitor-name}",
+        ]
     )
     if result.returncode == 0:
-        monitor_name = result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
+        monitor_name = (
+            result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
+        )
 
     result = run_command(
-        [AEROSPACE_BIN, "list-windows", "--workspace", "focused", "--format", "%{monitor-width}"]
+        [
+            AEROSPACE_BIN,
+            "list-windows",
+            "--workspace",
+            "focused",
+            "--format",
+            "%{monitor-width}",
+        ]
     )
     if result.returncode == 0:
         line = result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
@@ -119,7 +151,9 @@ def fetch_monitor_info() -> Dict[str, str]:
 
 
 def fetch_focused_window_id() -> str:
-    result = run_command([AEROSPACE_BIN, "list-windows", "--focused", "--format", "%{window-id}"])
+    result = run_command(
+        [AEROSPACE_BIN, "list-windows", "--focused", "--format", "%{window-id}"]
+    )
     if result.returncode != 0:
         return ""
     return result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
@@ -127,7 +161,12 @@ def fetch_focused_window_id() -> str:
 
 def should_ignore_window(window: Dict) -> bool:
     bundle_id = str(window.get("app-bundle-id") or window.get("app-id") or "").strip()
-    return bool(bundle_id and bundle_id in IGNORED_APP_BUNDLE_IDS)
+    if bundle_id and bundle_id in IGNORED_APP_BUNDLE_IDS:
+        return True
+    app_name = str(window.get("app-name") or "").strip()
+    if app_name and app_name in IGNORED_APP_NAMES:
+        return True
+    return False
 
 
 def window_label(seq: int, app_name: str, title: str) -> str:
