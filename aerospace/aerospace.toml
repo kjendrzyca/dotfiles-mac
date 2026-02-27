@@ -19,10 +19,18 @@ on-focus-changed = [
 ]
 
 # Emit workspace change details for SketchyBar consumption.
+# Also move sticky floating windows (Wispr Flow overlay) to the focused workspace.
 exec-on-workspace-change = [
   '/bin/bash',
   '-lc',
-  '/opt/homebrew/bin/sketchybar --trigger aerospace_workspace_update FOCUSED=$AEROSPACE_FOCUSED_WORKSPACE PREV=$AEROSPACE_PREV_WORKSPACE'
+  '''
+  AERO=$(launchctl getenv AEROSPACE_BIN 2>/dev/null || echo /opt/homebrew/bin/aerospace)
+  /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_update FOCUSED=$AEROSPACE_FOCUSED_WORKSPACE PREV=$AEROSPACE_PREV_WORKSPACE
+  for wid in $("$AERO" list-windows --workspace "$AEROSPACE_PREV_WORKSPACE" --json 2>/dev/null \
+    | /opt/homebrew/bin/jq -r '.[] | select(.["app-name"] == "Wispr Flow") | .["window-id"]' 2>/dev/null); do
+    expect -c "spawn $AERO move-node-to-workspace --window-id $wid $AEROSPACE_FOCUSED_WORKSPACE; expect eof" >/dev/null 2>&1
+  done
+  '''
 ]
 
 # Mouse should stay put; remove auto-centering to mimic prior behavior.
