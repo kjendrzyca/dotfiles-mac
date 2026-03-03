@@ -48,15 +48,22 @@ LABEL_PADDING = 10
 BAR_HEIGHT = 16
 ITEM_PREFIX = "window_"
 
-IGNORED_APP_BUNDLE_IDS: Set[str] = {
-    "io.krzysztof.scratchpad",
-    "com.electron.wispr-flow",
-    "com.electron.wispr-flow.accessibility-mac-app",
-}
+OVERLAY_CONFIG_PATH = Path.home() / ".config" / "aerospace" / "overlay-windows.json"
 
-IGNORED_APP_NAMES: Set[str] = {
-    "Wispr Flow",
-}
+
+def _load_overlay_rules() -> List[Dict[str, str]]:
+    """Load overlay window definitions from shared config."""
+    try:
+        with open(OVERLAY_CONFIG_PATH) as f:
+            rules = json.load(f)
+        if isinstance(rules, list):
+            return rules
+    except (OSError, json.JSONDecodeError) as err:
+        log(f"Failed to load overlay config: {err}")
+    return []
+
+
+OVERLAY_RULES: List[Dict[str, str]] = _load_overlay_rules()
 
 TEAL_COLOR = "0xff4c9df3"
 DARK_GRAY = "0xff333333"
@@ -160,12 +167,14 @@ def fetch_focused_window_id() -> str:
 
 
 def should_ignore_window(window: Dict) -> bool:
-    bundle_id = str(window.get("app-bundle-id") or window.get("app-id") or "").strip()
-    if bundle_id and bundle_id in IGNORED_APP_BUNDLE_IDS:
-        return True
     app_name = str(window.get("app-name") or "").strip()
-    if app_name and app_name in IGNORED_APP_NAMES:
-        return True
+    window_title = str(window.get("window-title") or "").strip()
+    for rule in OVERLAY_RULES:
+        rule_app = rule.get("app-name", "")
+        rule_title = rule.get("window-title")
+        if rule_app and rule_app == app_name:
+            if rule_title is None or rule_title == window_title:
+                return True
     return False
 
 

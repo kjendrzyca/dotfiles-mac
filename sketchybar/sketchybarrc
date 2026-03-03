@@ -8,12 +8,15 @@ BAR_HEIGHT=16
 FONT="Menlo"
 FONT_SIZE=10
 
-# Ensure the AeroSpace window rendering daemon is running
+# Ensure the AeroSpace window rendering daemon is running.
+# Kill any stale instance so we always get a fresh start on reload.
 SERVICE="$HOME/.config/sketchybar/aerospace_windows_service.py"
-if command -v python3 >/dev/null 2>&1; then
-  if ! pgrep -f "aerospace_windows_service.py" >/dev/null 2>&1; then
-    "$SERVICE" >/tmp/sketchybar_aerospace_service.log 2>&1 &
-  fi
+PYTHON3="/opt/homebrew/bin/python3"
+pkill -f "aerospace_windows_service.py" 2>/dev/null
+sleep 0.2
+if [ -x "$PYTHON3" ]; then
+  nohup "$PYTHON3" "$SERVICE" >/tmp/sketchybar_aerospace_service.log 2>&1 &
+  disown
 fi
 
 sketchybar --bar                       \
