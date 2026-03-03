@@ -25,9 +25,16 @@ exec-on-workspace-change = [
   '-lc',
   '''
   AERO=$(launchctl getenv AEROSPACE_BIN 2>/dev/null || echo /opt/homebrew/bin/aerospace)
+  JQ=/opt/homebrew/bin/jq
+  OVERLAY_CFG="$HOME/.config/aerospace/overlay-windows.json"
   /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_update FOCUSED=$AEROSPACE_FOCUSED_WORKSPACE PREV=$AEROSPACE_PREV_WORKSPACE
   for wid in $("$AERO" list-windows --workspace "$AEROSPACE_PREV_WORKSPACE" --json 2>/dev/null \
-    | /opt/homebrew/bin/jq -r '.[] | select(.["app-name"] == "Wispr Flow") | .["window-id"]' 2>/dev/null); do
+    | "$JQ" -r --slurpfile overlays "$OVERLAY_CFG" '
+        .[] | select(. as $w | ($overlays[0] | any(
+          (."app-name" == $w."app-name") and
+          (if ."window-title" then ."window-title" == $w."window-title" else true end)
+        ))) | .["window-id"]
+      ' 2>/dev/null); do
     expect -c "spawn $AERO move-node-to-workspace --window-id $wid $AEROSPACE_FOCUSED_WORKSPACE; expect eof" >/dev/null 2>&1
   done
   '''
@@ -116,11 +123,9 @@ if.app-id = 'com.bitgapp.eqmac'
 run = 'layout floating'
 
 [[on-window-detected]]
+# Wispr Flow recording overlay – keep floating so it doesn't take a tiling slot.
 if.app-id = 'com.electron.wispr-flow'
-run = 'layout floating'
-
-[[on-window-detected]]
-if.app-id = 'com.electron.wispr-flow.accessibility-mac-app'
+if.window-title-regex-substring = 'Status'
 run = 'layout floating'
 
 [[on-window-detected]]
@@ -161,17 +166,17 @@ run = 'layout floating'
 # alt-k = 'focus up'
 # alt-l = 'focus right'
 
-# Cycle windows depth-first (matches previous next/prev).
+# Cycle windows depth-first, skipping overlay windows defined in overlay-windows.json.
 cmd-alt-ctrl-shift-quote = [
-    'focus --boundaries-action wrap-around-the-workspace dfs-next',
+    'exec-and-forget ~/.config/aerospace/navigate.sh focus-next',
     'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
 ]
 cmd-alt-ctrl-shift-semicolon = [
-    'focus --boundaries-action wrap-around-the-workspace dfs-prev',
+    'exec-and-forget ~/.config/aerospace/navigate.sh focus-prev',
     'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
 ]
-alt-tab = 'focus --boundaries-action wrap-around-the-workspace dfs-next'
-alt-backtick = 'focus --boundaries-action wrap-around-the-workspace dfs-prev'
+alt-tab = 'exec-and-forget ~/.config/aerospace/navigate.sh focus-next'
+alt-backtick = 'exec-and-forget ~/.config/aerospace/navigate.sh focus-prev'
 
 # Focus highlighted window (dfs index) with cmd+number.
 # cmd-1 = 'focus --dfs-index 0'
@@ -185,15 +190,10 @@ alt-backtick = 'focus --boundaries-action wrap-around-the-workspace dfs-prev'
 # cmd-9 = 'focus --dfs-index 8'
 # cmd-0 = 'focus --dfs-index 9'
 
-# Swap windows in depth-first order (reorder shortcuts).
-alt-shift-semicolon = [
-    'swap dfs-prev',
-    'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
-]
-alt-shift-quote = [
-    'swap dfs-next',
-    'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
-]
+# Swap windows in depth-first order, skipping overlay windows.
+# navigate.sh triggers the sketchybar update after the swap completes.
+alt-shift-semicolon = 'exec-and-forget ~/.config/aerospace/navigate.sh swap-prev'
+alt-shift-quote = 'exec-and-forget ~/.config/aerospace/navigate.sh swap-next'
 
 # Launchers preserved from skhd.
 cmd-alt-ctrl-shift-enter = '''exec-and-forget open -na "Kitty" --args --single-instance -d ~'''

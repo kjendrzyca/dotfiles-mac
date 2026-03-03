@@ -45,3 +45,4 @@ opencode/*
 **/.window_order_state.json
 **/bak/
 **/*.backup
+sketchybar/__pycache__/aerospace_windows_service.cpython-314.pyc
