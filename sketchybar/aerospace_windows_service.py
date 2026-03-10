@@ -14,6 +14,7 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -107,7 +108,7 @@ def fetch_windows_json() -> List[Dict]:
         raise AeroSpaceError(f"Failed to parse AeroSpace JSON: {exc}") from exc
 
 
-def fetch_monitor_info() -> Dict[str, str]:
+def fetch_monitor_info() -> dict[str, str | int]:
     monitor_name = ""
     monitor_width = 0
 
@@ -223,8 +224,49 @@ class WindowState:
 class Renderer:
     def __init__(self) -> None:
         self.state = WindowState()
+        self._lock = threading.Lock()
+        self._refresh_timer: threading.Timer | None = None
 
-    def update(self) -> None:
+    def update(self, *, schedule_delayed_refresh: bool = True) -> None:
+        with self._lock:
+            self._update_once()
+            snapshot_order = list(self.state.order)
+
+        if schedule_delayed_refresh:
+            self._schedule_delayed_refresh(snapshot_order)
+
+    def _schedule_delayed_refresh(self, snapshot_order: List[str]) -> None:
+        with self._lock:
+            if self._refresh_timer is not None:
+                self._refresh_timer.cancel()
+
+            timer = threading.Timer(
+                0.2,
+                self._delayed_refresh_if_needed,
+                args=(snapshot_order,),
+            )
+            timer.daemon = True
+            self._refresh_timer = timer
+            timer.start()
+
+    def _delayed_refresh_if_needed(self, snapshot_order: List[str]) -> None:
+        try:
+            windows = fetch_windows_json()
+        except AeroSpaceError:
+            return
+
+        visible_windows = [w for w in windows if not should_ignore_window(w)]
+        new_order: List[str] = []
+        for window in visible_windows:
+            window_id = str(window.get("window-id", "")).strip()
+            if not window_id:
+                continue
+            new_order.append(f"{ITEM_PREFIX}{window_id}")
+
+        if new_order != snapshot_order:
+            self.update(schedule_delayed_refresh=False)
+
+    def _update_once(self) -> None:
         try:
             windows = fetch_windows_json()
         except AeroSpaceError as err:
