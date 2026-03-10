@@ -10,11 +10,13 @@ after-startup-command = [
   'exec-and-forget borders active_color=0xff4c9df3 inactive_color=0xff5f676a width=2.0 order=above blacklist="Loom,Wispr Flow"',
   # Warm up SketchyBar binary (query only) to reduce first-trigger latency.
   'exec-and-forget /opt/homebrew/bin/sketchybar --query bar',
-  'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
+  'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update',
+  'exec-and-forget /bin/bash -lc "$HOME/.config/aerospace/sticky-overlays.sh"'
 ]
 
 # Notify SketchyBar whenever focus shifts (window or workspace).
 on-focus-changed = [
+  'exec-and-forget /bin/bash -lc "$HOME/.config/aerospace/sticky-overlays.sh"',
   'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
 ]
 
@@ -25,18 +27,8 @@ exec-on-workspace-change = [
   '-lc',
   '''
   AERO=$(launchctl getenv AEROSPACE_BIN 2>/dev/null || echo /opt/homebrew/bin/aerospace)
-  JQ=/opt/homebrew/bin/jq
-  OVERLAY_CFG="$HOME/.config/aerospace/overlay-windows.json"
   /opt/homebrew/bin/sketchybar --trigger aerospace_workspace_update FOCUSED=$AEROSPACE_FOCUSED_WORKSPACE PREV=$AEROSPACE_PREV_WORKSPACE
-  for wid in $("$AERO" list-windows --workspace "$AEROSPACE_PREV_WORKSPACE" --json 2>/dev/null \
-    | "$JQ" -r --slurpfile overlays "$OVERLAY_CFG" '
-        .[] | select(. as $w | ($overlays[0] | any(
-          (."app-name" == $w."app-name") and
-          (if ."window-title" then ."window-title" == $w."window-title" else true end)
-        ))) | .["window-id"]
-      ' 2>/dev/null); do
-    expect -c "spawn $AERO move-node-to-workspace --window-id $wid $AEROSPACE_FOCUSED_WORKSPACE; expect eof" >/dev/null 2>&1
-  done
+  "$HOME/.config/aerospace/sticky-overlays.sh" >/dev/null 2>&1 || true
   '''
 ]
 

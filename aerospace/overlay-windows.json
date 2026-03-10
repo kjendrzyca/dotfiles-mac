@@ -1,4 +1,4 @@
 [
-  { "app-name": "Wispr Flow", "window-title": "Status" },
-  { "app-name": "Scratchpad" }
+  { "app-name": "Wispr Flow", "window-title": "Status", "sticky": true },
+  { "app-name": "Scratchpad", "sticky": false }
 ]
