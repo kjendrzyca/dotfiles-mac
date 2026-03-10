@@ -19,6 +19,8 @@
   "permission": {
     "bash": {
       "gh *": "ask",
+      "gh pr list *": "allow",
+      "gh pr view *": "allow",
       "git add *": "allow",
       "git commit *": "allow",
       "git push *": "ask",
