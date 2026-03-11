@@ -16,7 +16,6 @@ after-startup-command = [
 
 # Notify SketchyBar whenever focus shifts (window or workspace).
 on-focus-changed = [
-  'exec-and-forget /bin/bash -lc "$HOME/.config/aerospace/sticky-overlays.sh"',
   'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
 ]
 

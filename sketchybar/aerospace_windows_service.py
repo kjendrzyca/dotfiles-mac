@@ -48,8 +48,11 @@ DEFAULT_ITEM_WIDTH = 160
 LABEL_PADDING = 10
 BAR_HEIGHT = 16
 ITEM_PREFIX = "window_"
+DELAYED_REFRESH_DELAYS = (0.2, 0.6)
 
 OVERLAY_CONFIG_PATH = Path.home() / ".config" / "aerospace" / "overlay-windows.json"
+MONITOR_WIDTH_CACHE_TTL = 5.0
+_MONITOR_WIDTH_CACHE: dict[str, tuple[int, float]] = {}
 
 
 def _load_overlay_rules() -> List[Dict[str, str]]:
@@ -127,22 +130,12 @@ def fetch_monitor_info() -> dict[str, str | int]:
             result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
         )
 
-    result = run_command(
-        [
-            AEROSPACE_BIN,
-            "list-windows",
-            "--workspace",
-            "focused",
-            "--format",
-            "%{monitor-width}",
-        ]
-    )
-    if result.returncode == 0:
-        line = result.stdout.strip().splitlines()[0] if result.stdout.strip() else ""
-        try:
-            monitor_width = int(line)
-        except ValueError:
-            monitor_width = 0
+    cache_key = monitor_name or "__default__"
+    cached = _MONITOR_WIDTH_CACHE.get(cache_key)
+    if cached is not None:
+        cached_width, cached_at = cached
+        if time.monotonic() - cached_at < MONITOR_WIDTH_CACHE_TTL:
+            return {"name": monitor_name, "width": cached_width}
 
     if monitor_width <= 0 and MONITOR_WIDTH_BIN.exists():
         args = [str(MONITOR_WIDTH_BIN)]
@@ -154,6 +147,9 @@ def fetch_monitor_info() -> dict[str, str | int]:
                 monitor_width = int(result.stdout.strip().splitlines()[0])
             except (ValueError, IndexError):
                 monitor_width = 0
+
+    if monitor_width > 0:
+        _MONITOR_WIDTH_CACHE[cache_key] = (monitor_width, time.monotonic())
 
     return {"name": monitor_name, "width": monitor_width}
 
@@ -233,23 +229,30 @@ class Renderer:
             snapshot_order = list(self.state.order)
 
         if schedule_delayed_refresh:
-            self._schedule_delayed_refresh(snapshot_order)
+            self._schedule_delayed_refresh(snapshot_order, 0)
 
-    def _schedule_delayed_refresh(self, snapshot_order: List[str]) -> None:
+    def _schedule_delayed_refresh(
+        self, snapshot_order: List[str], attempt_idx: int
+    ) -> None:
+        if attempt_idx >= len(DELAYED_REFRESH_DELAYS):
+            return
+
         with self._lock:
             if self._refresh_timer is not None:
                 self._refresh_timer.cancel()
 
             timer = threading.Timer(
-                0.2,
+                DELAYED_REFRESH_DELAYS[attempt_idx],
                 self._delayed_refresh_if_needed,
-                args=(snapshot_order,),
+                args=(snapshot_order, attempt_idx),
             )
             timer.daemon = True
             self._refresh_timer = timer
             timer.start()
 
-    def _delayed_refresh_if_needed(self, snapshot_order: List[str]) -> None:
+    def _delayed_refresh_if_needed(
+        self, snapshot_order: List[str], attempt_idx: int
+    ) -> None:
         try:
             windows = fetch_windows_json()
         except AeroSpaceError:
@@ -265,6 +268,9 @@ class Renderer:
 
         if new_order != snapshot_order:
             self.update(schedule_delayed_refresh=False)
+            return
+
+        self._schedule_delayed_refresh(snapshot_order, attempt_idx + 1)
 
     def _update_once(self) -> None:
         try:
