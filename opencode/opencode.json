@@ -25,6 +25,7 @@
     "bash": {
       "gh *": "ask",
       "gh search *": "allow",
+      "gh repo view *": "allow",
       "gh pr list *": "allow",
       "gh pr view *": "allow",
       "git add *": "allow",
