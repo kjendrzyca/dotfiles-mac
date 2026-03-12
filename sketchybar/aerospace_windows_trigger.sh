@@ -29,8 +29,24 @@ finally:
 PY
 }
 
+message="update"
+case "${SENDER:-}" in
+  aerospace_workspace_update|forced)
+    message="workspace"
+    ;;
+esac
+
+case "${KIND:-}" in
+  focus)
+    message="focus"
+    ;;
+  windows)
+    message="update"
+    ;;
+esac
+
 if [[ -S "$SOCKET_PATH" ]]; then
-  if send_message "update"; then
+  if send_message "$message"; then
     exit 0
   fi
 fi
