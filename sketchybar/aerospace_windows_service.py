@@ -49,6 +49,7 @@ LABEL_PADDING = 10
 BAR_HEIGHT = 16
 ITEM_PREFIX = "window_"
 DELAYED_REFRESH_DELAYS = (0.2, 0.6)
+WORKSPACE_RECONCILE_DELAYS = (0.05, 0.10, 0.20)
 
 OVERLAY_CONFIG_PATH = Path.home() / ".config" / "aerospace" / "overlay-windows.json"
 MONITOR_WIDTH_CACHE_TTL = 5.0
@@ -175,6 +176,18 @@ def should_ignore_window(window: Dict) -> bool:
     return False
 
 
+def visible_window_order(windows: List[Dict]) -> List[str]:
+    ordered: List[str] = []
+    for window in windows:
+        if should_ignore_window(window):
+            continue
+        window_id = str(window.get("window-id", "")).strip()
+        if not window_id:
+            continue
+        ordered.append(f"{ITEM_PREFIX}{window_id}")
+    return ordered
+
+
 def window_label(seq: int, app_name: str, title: str) -> str:
     safe_title = title.replace("\n", " ").strip()
     label = f"[{seq}] {app_name}"
@@ -207,14 +220,35 @@ def run_sketchybar(args: List[str]) -> None:
         log(f"SketchyBar command failed: {' '.join(args)} -> {result.stderr.strip()}")
 
 
+def list_existing_window_items() -> List[str]:
+    result = run_command([SKETCHYBAR_BIN, "--query", "bar"], capture=True)
+    if result.returncode != 0:
+        return []
+
+    try:
+        data = json.loads(result.stdout.strip() or "{}")
+    except json.JSONDecodeError:
+        return []
+
+    items = data.get("items")
+    if not isinstance(items, list):
+        return []
+
+    return [
+        item for item in items if isinstance(item, str) and item.startswith(ITEM_PREFIX)
+    ]
+
+
 @dataclass
 class WindowState:
     order: List[str] = field(default_factory=list)
     props: Dict[str, Dict[str, str]] = field(default_factory=dict)
+    focused_id: str = ""
 
     def reset(self) -> None:
         self.order = []
         self.props = {}
+        self.focused_id = ""
 
 
 class Renderer:
@@ -222,6 +256,7 @@ class Renderer:
         self.state = WindowState()
         self._lock = threading.Lock()
         self._refresh_timer: threading.Timer | None = None
+        self._workspace_timer: threading.Timer | None = None
 
     def update(self, *, schedule_delayed_refresh: bool = True) -> None:
         with self._lock:
@@ -230,6 +265,28 @@ class Renderer:
 
         if schedule_delayed_refresh:
             self._schedule_delayed_refresh(snapshot_order, 0)
+
+    def focus_update(self) -> None:
+        focus_id = fetch_focused_window_id()
+
+        with self._lock:
+            applied, focus_changed = self._update_focus_only_locked(focus_id)
+            snapshot_order = list(self.state.order)
+
+        if applied:
+            if focus_changed:
+                self._schedule_delayed_refresh(snapshot_order, 0)
+            return
+
+        self.update()
+
+    def workspace_update(self) -> None:
+        with self._lock:
+            self._cancel_workspace_timer_locked()
+            self._update_once()
+            snapshot_order = list(self.state.order)
+
+        self._schedule_workspace_reconcile(snapshot_order, 0)
 
     def _schedule_delayed_refresh(
         self, snapshot_order: List[str], attempt_idx: int
@@ -250,6 +307,28 @@ class Renderer:
             self._refresh_timer = timer
             timer.start()
 
+    def _cancel_workspace_timer_locked(self) -> None:
+        if self._workspace_timer is not None:
+            self._workspace_timer.cancel()
+            self._workspace_timer = None
+
+    def _schedule_workspace_reconcile(
+        self, snapshot_order: List[str], attempt_idx: int
+    ) -> None:
+        if attempt_idx >= len(WORKSPACE_RECONCILE_DELAYS):
+            return
+
+        with self._lock:
+            self._cancel_workspace_timer_locked()
+            timer = threading.Timer(
+                WORKSPACE_RECONCILE_DELAYS[attempt_idx],
+                self._workspace_reconcile,
+                args=(snapshot_order, attempt_idx),
+            )
+            timer.daemon = True
+            self._workspace_timer = timer
+            timer.start()
+
     def _delayed_refresh_if_needed(
         self, snapshot_order: List[str], attempt_idx: int
     ) -> None:
@@ -258,19 +337,26 @@ class Renderer:
         except AeroSpaceError:
             return
 
-        visible_windows = [w for w in windows if not should_ignore_window(w)]
-        new_order: List[str] = []
-        for window in visible_windows:
-            window_id = str(window.get("window-id", "")).strip()
-            if not window_id:
-                continue
-            new_order.append(f"{ITEM_PREFIX}{window_id}")
+        new_order = visible_window_order(windows)
 
         if new_order != snapshot_order:
             self.update(schedule_delayed_refresh=False)
             return
 
         self._schedule_delayed_refresh(snapshot_order, attempt_idx + 1)
+
+    def _workspace_reconcile(self, snapshot_order: List[str], attempt_idx: int) -> None:
+        try:
+            windows = fetch_windows_json()
+        except AeroSpaceError:
+            return
+
+        new_order = visible_window_order(windows)
+        if new_order != snapshot_order:
+            self.update(schedule_delayed_refresh=False)
+            snapshot_order = new_order
+
+        self._schedule_workspace_reconcile(snapshot_order, attempt_idx + 1)
 
     def _update_once(self) -> None:
         try:
@@ -298,6 +384,7 @@ class Renderer:
 
         new_order: List[str] = []
         new_props: Dict[str, Dict[str, str]] = {}
+        existing_items = set(list_existing_window_items())
 
         for idx, window in enumerate(visible_windows, start=1):
             window_id = str(window.get("window-id", "")).strip()
@@ -339,14 +426,14 @@ class Renderer:
 
         # Add new items and update changed properties
         for item_name, props in new_props.items():
-            if item_name not in self.state.props:
+            if item_name not in existing_items:
                 run_sketchybar(["--add", "item", item_name, "left"])
                 self._set_properties(item_name, props)
             else:
                 self._set_differences(item_name, props)
 
         # Remove stale windows
-        for item_name in list(self.state.order):
+        for item_name in existing_items:
             if item_name not in new_order:
                 run_sketchybar(["--remove", item_name])
                 self.state.props.pop(item_name, None)
@@ -357,9 +444,53 @@ class Renderer:
 
         self.state.order = new_order
         self.state.props = new_props
+        self.state.focused_id = focus_id
+
+    def _update_focus_only_locked(self, focus_id: str) -> tuple[bool, bool]:
+        if not focus_id or not self.state.order:
+            return False, False
+
+        new_item_name = f"{ITEM_PREFIX}{focus_id}"
+        if new_item_name not in self.state.props:
+            return False, False
+
+        previous_focus_id = self.state.focused_id
+        if focus_id == previous_focus_id:
+            return True, False
+
+        if previous_focus_id:
+            previous_item_name = f"{ITEM_PREFIX}{previous_focus_id}"
+            if previous_item_name in self.state.props:
+                previous_props = self._apply_focus_style(
+                    self.state.props[previous_item_name], is_focused=False
+                )
+                self._set_differences(previous_item_name, previous_props)
+                self.state.props[previous_item_name] = previous_props
+
+        new_props = self._apply_focus_style(
+            self.state.props[new_item_name], is_focused=True
+        )
+        self._set_differences(new_item_name, new_props)
+        self.state.props[new_item_name] = new_props
+        self.state.focused_id = focus_id
+        return True, True
+
+    def _apply_focus_style(
+        self, props: Dict[str, str], *, is_focused: bool
+    ) -> Dict[str, str]:
+        updated = dict(props)
+        if is_focused:
+            updated["background.color"] = TEAL_COLOR
+            updated["background.border_color"] = BORDER_COLOR_ACTIVE
+            updated["label.color"] = BLACK_COLOR
+        else:
+            updated["background.color"] = DARK_GRAY
+            updated["background.border_color"] = BORDER_COLOR_INACTIVE
+            updated["label.color"] = WHITE_COLOR
+        return updated
 
     def _clear_bar(self) -> None:
-        for item_name in self.state.order:
+        for item_name in list_existing_window_items():
             run_sketchybar(["--remove", item_name])
         self.state.reset()
 
@@ -406,8 +537,11 @@ def serve() -> None:
         message = data.decode("utf-8", "ignore").strip().lower()
         if message in {"update", ""}:
             renderer.update()
+        elif message == "focus":
+            renderer.focus_update()
+        elif message == "workspace":
+            renderer.workspace_update()
         elif message == "reload":
-            renderer.state.reset()
             renderer.update()
         elif message == "quit":
             cleanup_socket()

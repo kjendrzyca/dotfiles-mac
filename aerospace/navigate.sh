@@ -125,6 +125,6 @@ case "$ACTION" in
 
     # swap doesn't change focus, so no AeroSpace hook fires automatically.
     # Trigger a SketchyBar update to reflect the new window order.
-    /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update
+    /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update KIND=windows
     ;;
 esac

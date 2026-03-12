@@ -10,13 +10,13 @@ after-startup-command = [
   'exec-and-forget borders active_color=0xff4c9df3 inactive_color=0xff5f676a width=2.0 order=above blacklist="Loom,Wispr Flow"',
   # Warm up SketchyBar binary (query only) to reduce first-trigger latency.
   'exec-and-forget /opt/homebrew/bin/sketchybar --query bar',
-  'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update',
+  'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update KIND=windows',
   'exec-and-forget /bin/bash -lc "$HOME/.config/aerospace/sticky-overlays.sh"'
 ]
 
 # Notify SketchyBar whenever focus shifts (window or workspace).
 on-focus-changed = [
-  'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
+  'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update KIND=focus'
 ]
 
 # Emit workspace change details for SketchyBar consumption.
@@ -159,12 +159,10 @@ run = 'layout floating'
 
 # Cycle windows depth-first, skipping overlay windows defined in overlay-windows.json.
 cmd-alt-ctrl-shift-quote = [
-    'exec-and-forget ~/.config/aerospace/navigate.sh focus-next',
-    'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
+    'exec-and-forget ~/.config/aerospace/navigate.sh focus-next'
 ]
 cmd-alt-ctrl-shift-semicolon = [
-    'exec-and-forget ~/.config/aerospace/navigate.sh focus-prev',
-    'exec-and-forget /opt/homebrew/bin/sketchybar --trigger aerospace_windows_update'
+    'exec-and-forget ~/.config/aerospace/navigate.sh focus-prev'
 ]
 alt-tab = 'exec-and-forget ~/.config/aerospace/navigate.sh focus-next'
 alt-backtick = 'exec-and-forget ~/.config/aerospace/navigate.sh focus-prev'
