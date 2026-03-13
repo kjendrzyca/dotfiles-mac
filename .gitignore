@@ -32,6 +32,10 @@ karabiner/*
 !opencode/
 opencode/*
 !opencode/opencode.json
+!opencode/commands/
+!opencode/commands/**
+!opencode/skills/
+!opencode/skills/**
 
 # Whitelist .gitignore itself
 !.gitignore
