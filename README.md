@@ -5,8 +5,10 @@ This repository captures the parts of the macOS tiling workflow that need to liv
 ## Quick Start
 
 - Install the required apps (see each section).
+- Install the free pre-commit guard for secret scanning: `brew install pre-commit`, then `pre-commit install` inside this repo.
 - Review the configuration notes and adapt the tracked files (`aerospace/`, `sketchybar/`, `kitty/`, `karabiner/karabiner.json`) as inspiration for your own setup.
 - Reload AeroSpace (`aerospace reload`) and SketchyBar (`sketchybar --reload`) whenever you copy changes into place.
+- Run `pre-commit run --all-files` after enabling it to scan the current tracked files once.
 
 ---
 
