@@ -35,6 +35,7 @@ opencode/*
 
 # Whitelist .gitignore itself
 !.gitignore
+!.pre-commit-config.yaml
 !README.md
 
 # Re-ignore sensitive/temporary files even if in whitelisted folders
@@ -46,3 +47,8 @@ opencode/*
 **/bak/
 **/*.backup
 sketchybar/__pycache__/aerospace_windows_service.cpython-314.pyc
+
+# Defense in depth: keep known-sensitive local configs ignored
+stripe/
+gh/
+op/
