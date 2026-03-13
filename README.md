@@ -38,18 +38,29 @@ AeroSpace supplies deterministic tiling and depth-first window ordering on macOS
 ### Setup Requires
 
 - `brew install --cask nikitabobko/tap/aerospace` ([GitHub](https://github.com/nikitabobko/AeroSpace))
+- Optional but used by this setup: `brew install borders` for [JankyBorders](https://github.com/FelixKratz/JankyBorders)
 - Grant AeroSpace Accessibility control (System Settings ▸ Privacy & Security ▸ Accessibility)
 - Use `aerospace/aerospace.toml` as the reference for your `~/.config/aerospace/` configuration.
 
 ### Configuration Highlights
 
-- Hooks (`after-startup-command`, `on-focus-changed`, `exec-on-workspace-change`) trigger `sketchybar --trigger aerospace_windows_update`, keeping the menu bar in sync with focus and workspace changes. Workspace transitions forward both the previous and new IDs.
+- `after-startup-command` ensures JankyBorders is running via `aerospace/start-borders.sh`, warms SketchyBar, triggers an initial full window refresh, and runs `sticky-overlays.sh` once at startup.
+- `on-focus-changed` sends a lightweight `sketchybar --trigger aerospace_windows_update KIND=focus`, while `exec-on-workspace-change` forwards `FOCUSED` / `PREV` workspace IDs through `aerospace_workspace_update` and re-runs `sticky-overlays.sh`.
+- `aerospace/overlay-windows.json` is the single source of truth for overlay windows. `Wispr Flow | Status` is marked `sticky`, `Scratchpad` is hidden from the bar and DFS navigation, and all consumers reuse the same rules.
 - Layout reserves SketchyBar’s space and leaves room for [JankyBorders](https://github.com/Fedjmike/JankyBorders) outlines: inner gaps 2 px feed the border renderer, top outer gap 16 px clears the bar.
-- DFS bindings: `cmd-alt-ctrl-shift-'` / `cmd-alt-ctrl-shift-;` cycle focus, `alt-shift-'` / `alt-shift-;` swap with the neighbouring DFS node.
+- DFS bindings: `cmd-alt-ctrl-shift-'` / `cmd-alt-ctrl-shift-;` cycle focus, `alt-shift-'` / `alt-shift-;` swap with the neighbouring DFS node. `aerospace/navigate.sh` filters overlay windows out of DFS focus/swap and triggers a full bar refresh after swaps.
 - Workspace control: `alt-[0-9]` focuses slots 1–10, `alt-shift-[0-9]` moves the focused window and follows it.
 - Launch chords: `cmd-alt-ctrl-shift-enter` opens Kitty, while `cmd-alt-ctrl-shift-f` opens Finder via `exec-and-forget` bindings.
 - Maintenance chord `alt-shift-s` exposes recovery helpers (flatten layouts, toggle tiling) and exits with `esc`.
 - `/opt/homebrew/bin` is exported via `[exec.env-vars]` so helper commands resolve correctly even when PATH differs.
+
+### Overlay Windows + JankyBorders Helpers
+
+- `aerospace/sticky-overlays.sh` keeps `sticky=true` overlay windows on the focused workspace using `overlay-windows.json` and `expect` (required because AeroSpace v0.20.0+ needs a TTY for `move-node-to-workspace` in non-interactive contexts).
+- `aerospace/start-borders.sh` manages the `borders` process in two modes:
+  - `~/.config/aerospace/start-borders.sh` ensures JankyBorders is running.
+  - `~/.config/aerospace/start-borders.sh restart` restarts it cleanly after manual debugging or crashes.
+- Detailed Wispr Flow notes live in `aerospace/WISPR_STATUS_RESEARCH.md`.
 
 ### Optional: Custom AeroSpace Build
 
@@ -88,11 +99,15 @@ SketchyBar renders a scriptable menu bar. Paired with AeroSpace it provides a cl
 
 ### Configuration Highlights
 
-- `sketchybarrc` registers `aerospace_windows_update` / `aerospace_workspace_update`, spins up a long-lived Python service (`aerospace_windows_service.py`) on launch, and points the hidden listener at a lightweight trigger script (`aerospace_windows_trigger.sh`).
-- The service maintains window state in memory: it diffs AeroSpace JSON output, updates only the items whose properties changed, batches reorders, and keeps redraw latency near-instant. If the service is unreachable the trigger exits non-zero, making issues obvious during testing.
+- `sketchybarrc` registers `aerospace_windows_update` / `aerospace_workspace_update`, restarts the long-lived Python service (`aerospace_windows_service.py`) with `nohup`, and points the hidden listener at a lightweight trigger script (`aerospace_windows_trigger.sh`).
+- `aerospace_windows_trigger.sh` routes events into three message types for the socket service:
+  - `KIND=focus` → fast focus-only highlight update.
+  - `KIND=windows` / default → full window list refresh.
+  - `aerospace_workspace_update` → workspace refresh path with a short reconciliation pass for AeroSpace’s transient workspace state.
+- The Python service keeps window state in memory, filters overlays using `aerospace/overlay-windows.json`, caches monitor widths, updates only changed item properties, and removes stale bar items by comparing against SketchyBar’s current item list rather than only in-memory state.
 - `aerospace_windows.sh` remains in the repo as a fallback reference but is no longer called by default.
 - Colors, fonts, and padding stay tuned for a 16 px bar so the visuals still align with AeroSpace.
-- Force a redraw any time with `sketchybar --trigger aerospace_windows_update` or `sketchybar --reload`; the new service listens for both.
+- Force a redraw any time with `sketchybar --trigger aerospace_windows_update KIND=windows` or `sketchybar --reload`; for focus-only debugging you can use `sketchybar --trigger aerospace_windows_update KIND=focus`.
 
 ### Restarting the AeroSpace Window Service
 
@@ -101,7 +116,7 @@ Switching AeroSpace binaries (for example, after rebuilding `~/github/AeroSpace/
 1. Export the debug CLI for all login shells: `launchctl setenv AEROSPACE_BIN ~/github/AeroSpace/.debug/aerospace` (rerun this whenever the path changes). Verify with `launchctl getenv AEROSPACE_BIN` if needed.
 2. Stop any stale renderer so the reload starts a fresh copy: `pkill -f aerospace_windows_service.py` (safe even if it is not running).
 3. Reload SketchyBar to relaunch the daemon under the updated environment: `sketchybar --reload`.
-4. Populate the bar immediately by triggering an update: `sketchybar --trigger aerospace_windows_update`.
+4. Populate the bar immediately by triggering an update: `sketchybar --trigger aerospace_windows_update KIND=windows`.
 
 `sketchybarrc` performs the same steps automatically on login, so running the commands above manually is only necessary after changing binaries or debugging the service.
 
