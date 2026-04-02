@@ -214,11 +214,12 @@ def run_codex() -> dict:
                 output = buffer.decode("utf-8", "ignore")
                 compact_output = compact(output).lower()
                 if "update available" in compact_output and "codex" in compact_output:
+                    time.sleep(0.3)
                     os.write(master, b"\x1b[B")
-                    time.sleep(0.12)
+                    time.sleep(0.4)
                     os.write(master, b"\r")
-                    time.sleep(0.15)
-                    os.write(master, b"\r")
+                    time.sleep(0.5)
+                    buffer = b""
                     sent = False
                     continue
                 if "5h limit:" in output and "weekly limit:" in output:
