@@ -4,7 +4,7 @@
   "plugin": [
     "opencode-gemini-auth@latest",
     "@franlol/opencode-md-table-formatter@latest",
-    "opencode-claude-auth"
+    "file:///Users/kjendrzyca/.config/opencode/plugins/opencode-claude-auth-patched/index.js"
   ],
   "agent": {
     "build": {
