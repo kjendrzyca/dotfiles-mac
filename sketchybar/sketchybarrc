@@ -5,6 +5,7 @@
 # -----------------------------------------------------------------------------
 BAR_COLOR=0xff000000
 BAR_HEIGHT=16
+BAR_Y_OFFSET=-4
 FONT="Menlo"
 FONT_SIZE=10
 
@@ -23,6 +24,7 @@ sketchybar --bar                       \
   color=$BAR_COLOR                     \
   position=top                         \
   height=$BAR_HEIGHT                   \
+  y_offset=$BAR_Y_OFFSET               \
   padding_left=0                       \
   padding_right=0                      \
   font="$FONT:Regular:$FONT_SIZE"      \
