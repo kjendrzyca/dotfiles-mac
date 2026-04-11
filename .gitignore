@@ -32,11 +32,16 @@ karabiner/*
 !opencode/
 opencode/*
 !opencode/opencode.json
-!opencode/ai-limits.py
 !opencode/commands/
-!opencode/commands/**
-!opencode/skills/
-!opencode/skills/**
+opencode/commands/*
+!opencode/commands/deslop.md
+opencode/skills/
+opencode/plugins/
+opencode/node_modules/
+opencode/package.json
+opencode/package-lock.json
+opencode/bun.lock
+opencode/.gitignore
 
 # Whitelist .gitignore itself
 !.gitignore
