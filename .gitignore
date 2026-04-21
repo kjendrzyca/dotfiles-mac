@@ -32,6 +32,7 @@ karabiner/*
 !opencode/
 opencode/*
 !opencode/opencode.json
+!opencode/tui.json
 !opencode/commands/
 opencode/commands/*
 !opencode/commands/deslop.md
@@ -45,6 +46,7 @@ opencode/.gitignore
 
 # Whitelist .gitignore itself
 !.gitignore
+!.secrets.baseline
 !.pre-commit-config.yaml
 !README.md
 

@@ -7,6 +7,11 @@
     "@slkiser/opencode-quota@latest",
     "opencode-with-claude@latest"
   ],
+  "experimental": {
+    "quotaToast": {
+      "enableToast": false
+    }
+  },
   "provider": {
     "anthropic": {
       "options": {
