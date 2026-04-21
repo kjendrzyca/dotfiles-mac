@@ -3,8 +3,18 @@
   "model": "openai/gpt-5.4",
   "plugin": [
     "opencode-gemini-auth@latest",
-    "@franlol/opencode-md-table-formatter@latest"
+    "@franlol/opencode-md-table-formatter@latest",
+    "@slkiser/opencode-quota@latest",
+    "opencode-with-claude@latest"
   ],
+  "provider": {
+    "anthropic": {
+      "options": {
+        "baseURL": "http://127.0.0.1:3456",
+        "apiKey": "dummy"
+      }
+    }
+  },
   "agent": {
     "build": {
       "model": "openai/gpt-5.4"
