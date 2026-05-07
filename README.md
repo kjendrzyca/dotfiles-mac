@@ -97,6 +97,53 @@ SketchyBar renders a scriptable menu bar. Paired with AeroSpace it provides a cl
 - Optional: `brew install --cask sf-symbols` for icon experimentation
 - Adapt the contents of `sketchybar/` when configuring `~/.config/sketchybar/`.
 
+### Temporary: Upstream Master Build for Tahoe
+
+Until Homebrew releases a SketchyBar version containing PR `#810` (`Use visibleFrame for menu bar inset`), build and run upstream `master` locally. The Homebrew service still launches the released formula binary, so this setup stops the service, points `/opt/homebrew/bin/sketchybar` at the local build, and starts SketchyBar manually.
+
+```bash
+mkdir -p ~/github
+git clone https://github.com/FelixKratz/SketchyBar.git ~/github/SketchyBar 2>/dev/null || true
+
+cd ~/github/SketchyBar
+git checkout master
+git pull --ff-only origin master
+make clean arm64
+codesign --force -s - ~/github/SketchyBar/bin/sketchybar
+
+brew services stop sketchybar || true
+ln -sfn ~/github/SketchyBar/bin/sketchybar /opt/homebrew/bin/sketchybar
+pkill -x sketchybar 2>/dev/null || true
+nohup /opt/homebrew/bin/sketchybar >/tmp/sketchybar-master.out 2>/tmp/sketchybar-master.err </dev/null &
+
+sketchybar --query bar
+```
+
+When an official release includes the Tahoe fix, restore the Homebrew-managed binary and service:
+
+```bash
+brew upgrade sketchybar
+brew link --overwrite sketchybar
+brew services restart sketchybar
+```
+
+To check whether the official release already contains the fix, fetch upstream tags and ask git which tags contain the merged PR commit:
+
+```bash
+cd ~/github/SketchyBar
+git fetch origin --tags
+git tag --contains fb99917
+```
+
+If this prints a version tag, the fix is included in that SketchyBar release or newer. Then compare it with Homebrew:
+
+```bash
+brew update
+brew info sketchybar
+```
+
+Once Homebrew reports a SketchyBar version at or newer than the first tag containing `fb99917`, it is safe to restore the Homebrew-managed binary and service using the commands above.
+
 ### Configuration Highlights
 
 - `sketchybarrc` registers `aerospace_windows_update` / `aerospace_workspace_update`, restarts the long-lived Python service (`aerospace_windows_service.py`) with `nohup`, and points the hidden listener at a lightweight trigger script (`aerospace_windows_trigger.sh`).
