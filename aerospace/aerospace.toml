@@ -122,6 +122,10 @@ run = 'layout floating'
 if.app-id = 'io.krzysztof.scratchpad'
 run = 'layout floating'
 
+[[on-window-detected]]
+if.workspace = '11'
+run = 'layout floating'
+
 # Primary binding mode.
 # All possible keys:
     # - Letters.        a, b, c, ..., z
@@ -211,7 +215,7 @@ alt-shift-7 = ['move-node-to-workspace 7']
 alt-shift-8 = ['move-node-to-workspace 8']
 alt-shift-9 = ['move-node-to-workspace 9']
 alt-shift-0 = ['move-node-to-workspace 10']
-alt-shift-backslash = ['move-node-to-workspace 11']
+alt-shift-backslash = ['layout floating', 'move-node-to-workspace 11']
 
 # Layout toggles similar to previous workflow.
 alt-shift-e = 'layout tiles horizontal vertical'
