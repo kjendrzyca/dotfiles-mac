@@ -5,9 +5,6 @@
 # -----------------------------------------------------------------------------
 BAR_COLOR=0xff000000
 BAR_HEIGHT=16
-FONT="Menlo"
-FONT_SIZE=10
-
 # Ensure the AeroSpace window rendering daemon is running.
 # Kill any stale instance so we always get a fresh start on reload.
 SERVICE="$HOME/.config/sketchybar/aerospace_windows_service.py"
@@ -25,7 +22,6 @@ sketchybar --bar                       \
   height=$BAR_HEIGHT                   \
   padding_left=0                       \
   padding_right=0                      \
-  font="$FONT:Regular:$FONT_SIZE"      \
   blur_radius=0                        \
   sticky=on                            \
   display=1
@@ -33,6 +29,7 @@ sketchybar --bar                       \
 # Events emitted from AeroSpace hooks.
 sketchybar --add event aerospace_windows_update
 sketchybar --add event aerospace_workspace_update
+sketchybar --add event forced
 
 # Hidden listener runs the AeroSpace window renderer for each event.
 sketchybar --add item aerospace_listener left \
