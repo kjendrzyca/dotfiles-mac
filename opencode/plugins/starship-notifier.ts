@@ -1,0 +1,1 @@
+/Users/kjendrzyca/LifeOS/tools/starship-computer-cli-hooks-setup/opencode_starship_plugin.ts
