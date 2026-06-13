@@ -86,6 +86,59 @@ Until a supported ordering flag lands upstream, this setup uses a fork that remo
    ```
 5. Revert with `launchctl unsetenv AEROSPACE_BIN` and reload SketchyBar or restart AeroSpace.
 
+#### Auto-start the fork at login
+
+Step 3 launches the fork only once. `start-at-login = true` in `aerospace.toml` can't automate it — debug builds skip the `SMAppService` registration (they log `'start-at-login = true' has no effect in debug builds`). Instead a user **LaunchAgent** has `launchd` start the fork at login, sidestepping that limitation. It lives outside this repo at `~/Library/LaunchAgents/io.krzysztof.aerospace-debug.plist`.
+
+Create and register it with the snippet below. The heredoc bakes your home path into `ProgramArguments` via `$HOME` — `launchd` does **not** expand `~` or env vars there, so the stored path must be absolute:
+
+```bash
+cat > ~/Library/LaunchAgents/io.krzysztof.aerospace-debug.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>io.krzysztof.aerospace-debug</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$HOME/github/AeroSpace/.debug/AeroSpaceApp</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <false/>
+    <key>LimitLoadToSessionType</key>
+    <string>Aqua</string>
+    <key>ProcessType</key>
+    <string>Interactive</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/aerospace-debug.out</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/aerospace-debug.err</string>
+</dict>
+</plist>
+EOF
+
+plutil -lint ~/Library/LaunchAgents/io.krzysztof.aerospace-debug.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/io.krzysztof.aerospace-debug.plist
+```
+
+`RunAtLoad` starts it at login; `KeepAlive = false` keeps a manual `killall`/rebuild from triggering a relaunch loop. AeroSpace is single-instance, so loading the agent while a copy already runs simply no-ops.
+
+Restart the running fork — use this instead of `killall`, which by tearing down and re-registering every AX observer at once can provoke a runaway observer-thread churn:
+
+```bash
+launchctl kickstart -k gui/$(id -u)/io.krzysztof.aerospace-debug
+```
+
+Remove it (stop auto-start and delete the agent):
+
+```bash
+launchctl bootout gui/$(id -u)/io.krzysztof.aerospace-debug
+rm ~/Library/LaunchAgents/io.krzysztof.aerospace-debug.plist
+```
+
 ---
 
 ## SketchyBar Custom Menu Bar
