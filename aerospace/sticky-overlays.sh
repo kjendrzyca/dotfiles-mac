@@ -13,6 +13,13 @@ EXPECT="/usr/bin/expect"
 
 # Prevent overlapping runs (on-focus-changed can fire often).
 LOCK_DIR="/tmp/aerospace_sticky_overlays.lock"
+# Reclaim a stale lock: a previous run that wedged (e.g. a hung
+# move-node-to-workspace) must not disable overlays indefinitely. A healthy
+# run holds the lock well under a second, so anything older is abandoned.
+if [[ -d "$LOCK_DIR" ]] &&
+   (( $(date +%s) - $(stat -f %m "$LOCK_DIR" 2>/dev/null || echo 0) > 30 )); then
+  rmdir "$LOCK_DIR" 2>/dev/null || true
+fi
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
   exit 0
 fi
@@ -52,7 +59,9 @@ while IFS= read -r wid; do
   [[ -z "${wid}" ]] && continue
   # AeroSpace v0.20.0+ requires TTY for move-node-to-workspace when run from
   # non-interactive contexts.
-  out="$($EXPECT -c "log_user 0; spawn $AERO move-node-to-workspace --fail-if-noop --window-id $wid $focused_ws; expect eof; catch wait result; exit [lindex \$result 3]" 2>&1)" || true
+  # set timeout + expect{timeout} so one wedged move can't hang the run (and
+  # hold the lock) forever; on timeout, kill the spawned CLI and report 124.
+  out="$($EXPECT -c "log_user 0; set timeout 5; spawn $AERO move-node-to-workspace --fail-if-noop --window-id $wid $focused_ws; expect { timeout { catch {exec kill [exp_pid]}; exit 124 } eof }; catch wait result; exit [lindex \$result 3]" 2>&1)" || true
   # Ignore no-op moves, but surface unexpected errors.
   if [[ -n "${out}" && "${out}" != *"already belongs to workspace"* ]]; then
     printf '%s %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "sticky-overlays: wid=${wid} target_ws=${focused_ws} -> ${out}" >>/tmp/aerospace_sticky_overlays.log
