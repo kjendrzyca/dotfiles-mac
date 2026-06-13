@@ -68,10 +68,13 @@ The SketchyBar window list depends on the order returned by `aerospace list-wind
 
 Upstream has ongoing discussion/requests around exposing explicit DFS/tree ordering for `list-windows`:
 - Issue `#491` (request for DFS-ordered window listing): https://github.com/nikitabobko/AeroSpace/issues/491
-- PR `#1839` (attempt to add `--sort tree-order`): https://github.com/nikitabobko/AeroSpace/pull/1918
+- PR `#1839` (closed `--sort tree-order` attempt): https://github.com/nikitabobko/AeroSpace/pull/1839
+- PR `#1918` (open — adds `--sort-by dfs-index`; the additive flag this fork should adopt to retire the patch): https://github.com/nikitabobko/AeroSpace/pull/1918
 - Related SketchyBar integration discussion: https://github.com/nikitabobko/AeroSpace/issues/175
 
 Until a supported ordering flag lands upstream, this setup uses a fork that removes the internal sorting so `list-windows` preserves the DFS order used by focus/swap commands.
+
+> **Note (June 2026):** A `--sort` option (`recent`, `app-name`, `window-title`) was merged into the `vitorebatista/AeroSpace` fork via [PR #18](https://github.com/vitorebatista/AeroSpace/pull/18) (a port of `nikitabobko#1932`). It does **not** replace this fork: its `SortOption` enum exposes no `dfs-index`/`tree`/`none` value and still defaults to `app-name,window-title`, so none of its modes preserve DFS order. Neither `--sort` nor `--sort-by` is in `nikitabobko` mainline yet (verified: `upstream/main` still sorts `list-windows` unconditionally). The clean long-term replacement for the one-line deletion is to carry `--sort-by dfs-index` (per `#1918`) as an **additive** flag rather than a subtractive patch.
 
 1. Clone the fork into `~/github/AeroSpace` and build it via `./build-debug.sh`.
 2. Stop the Homebrew service: `brew services stop aerospace`.
